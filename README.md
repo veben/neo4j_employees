@@ -23,7 +23,7 @@
 ### 1. Load `employees-and-their-boss.csv` file
 - Create "employee "`Employee` nodes with first column
 ```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/employees-and-their-boss.csv'
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv'
 AS row
 CREATE (:Employee {name: row.employee_name})
 ```
@@ -31,7 +31,7 @@ CREATE (:Employee {name: row.employee_name})
 
 - Create "boss "`Employee` nodes with second column
 ```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/employees-and-their-boss.csv'
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv'
 AS row
 MERGE (:Employee {name: row.has_boss})
 ```
@@ -45,7 +45,7 @@ MATCH (n) RETURN n
 
 - Create the relashionships between employees and their boss
 ```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/employees-and-their-boss.csv'
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv'
 AS row
 MATCH (employee:Employee {name: row.employee_name})
 MATCH (boss:Employee {name: row.has_boss})
@@ -64,7 +64,7 @@ MATCH (n) RETURN n
 Using LOAD CSV with a large data set in a query where the execution plan contains the Eager operator could potentially consume a lot of memory and is likely to not perform well. See the Neo4j Manual entry on the Eager operator for more information and hints on how problems could be avoided.
 
 ```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/employees-and-their-boss.csv'
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv'
 AS row
 MERGE (employee:Employee {name: row.employee_name})
 MERGE (boss:Employee {name: row.has_boss})
@@ -76,7 +76,7 @@ MERGE (employee)-[:REPORTS_TO]->(boss)
 
 ### 2. Load `employees-and-their-friends.csv` file
 ```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/employees-and-their-friends.csv'
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-friends.csv'
 AS row
 MERGE (employee:Employee {name: row.employee_name})
 MERGE (friend:Employee {name: row.is_friends_with})
