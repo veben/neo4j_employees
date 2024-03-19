@@ -158,3 +158,31 @@ MATCH (jacob:Employee {name: "Jacob"})<-[:REPORTS_TO*]-(employee)
 WHERE NOT (jacob)<-[:FRIENDS_WITH]-(employee)
 RETURN jacob, employee
 ```
+
+## V. Connect with Tableau
+- Download Tableau desktop: https://www.tableau.com/fr-fr/support/releases/desktop/2024.1#esdalt
+- Install it
+- Download Neo4j **ODBC connector**: https://neo4j.com/bi-connector/
+- Install the connector
+- Open **ODBC Data Sources** program
+- Go to the "System DSN" tab and click "Add".
+- Select the Neo4j ODBC Driver from the list of available drivers.
+- Configure the driver settings, including the server address (localhost), port number (default is usually 7687), and authentication details (username/password).
+- Test the connection
+> This leads to this error
+```t
+[Simba][Neo4j] (22) An error has been thrown from the Neo4j client: 'could not run query: Neo4jError: Neo.ClientError.Statement.SyntaxError (Unknown function 'apoc.version' (line 1, column 8 (offset: 7))
+"RETURN apoc.version()"
+        ^)'
+```
+- Install APOC plugin
+- Restart Neo4j DBMS
+- Test agin the connection
+> It works
+![alt text](resources/images/odbc_db_connection.png)
+- Open Tableau desktop
+- Go to the "Data" menu and select "Connect to Data"
+- Choose "Other Databases (ODBC)" from the list of available connectors
+- Select the Neo4j ODBC DSN you configured earlier
+- Fill the connection details
+![alt text](resources/images/tableau_db_connection.png)
