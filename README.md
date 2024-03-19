@@ -186,3 +186,75 @@ RETURN jacob, employee
 - Select the Neo4j ODBC DSN you configured earlier
 - Fill the connection details
 ![alt text](resources/images/tableau_db_connection.png)
+
+TODO: Create chart
+
+## VI. Play with more data
+### 1. Loading of **skills**
+Here is a new dataset adding skill list to the employees:
+```
+employee_name,skills
+Bradley,"Python,Java,C++,SQL"
+Meagan,"Java,HTML,CSS,Javascript"
+Wayne,"C++,Python,R,SQL"
+Annie,"Rust"
+Sylvester,"C#,Go"
+Ferrari,"Cypher,SQL"
+Gavin,"Java,Fortan,Cobol"
+Diane,"CSS,HTML,Javascript"
+Morgan,"Java"
+Mindy,"Go,Java"
+Clyde,"C#,C,C++"
+Clyde,"Java"
+Thad,
+```
+> This allow to test some behaviour of the loading:
+> - multiple values for `skills` column
+> - Clyde is present 2 times with different skills
+> - Thad does not have skill
+- Loading in one time:
+```sh
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
+WITH row, split(row.skills, ",") AS skillList
+UNWIND skillList AS skill
+MERGE (e:Employee {name: row.employee_name})
+MERGE (s:Skill {name: skill})
+MERGE (e)-[:HAS_SKILL]->(s)
+```
+> Particularity: Thad which has no skills is not loaded
+- Loading of employees, then skills, then edges
+```sh
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
+MERGE (:Employee {name: row.employee_name})
+```
+```sh
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' as row
+WITH row, split(row.skills, ",") AS skillList
+UNWIND skillList AS skill
+MERGE (:Skill {name: skill})
+```
+```sh
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
+WITH row, split(row.skills, ",") AS skillList
+UNWIND skillList AS skill
+MATCH (e:Employee {name: row.employee_name})
+MATCH (s:Skill {name: skill})
+MERGE (e)-[:HAS_SKILL]->(s)
+```
+> Particularity: Thad which has no skills is loaded
+
+### 2. Some queries
+- I want to know everything about **Clyde**
+```sh
+MATCH (e:Employee {name: "Bradley"})-[:REPORTS_TO]->(boss)
+OPTIONAL MATCH (e)-[:FRIENDS_WITH]-(friend)
+OPTIONAL MATCH (e)-[:HAS_SKILL]->(skill)
+RETURN e.name AS Employee,
+       boss.name AS Boss,
+       collect(DISTINCT friend.name) AS Friends,
+       collect(DISTINCT skill.name) AS Skills
+```
+TODO: Other complex query
+
+## V. Load by script
+TODO: Load data with Go script
