@@ -1,0 +1,17 @@
+services:
+  neo4j: 
+    image: neo4j:latest
+    hostname: neo4j
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+    environment:
+      - NEO4J_AUTH=$DB_USER/$DB_PASSWORD
+      - NEO4J_PLUGINS=["apoc"]
+
+volumes:
+  neo4j:
