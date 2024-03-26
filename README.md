@@ -49,7 +49,7 @@ docker-compose up
 - Create "employee "`Employee` nodes with first column
 ```sh
 LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv' AS row
-CREATE (:Employee {name: row.`employee name`})
+MERGE (:Employee {name: row.`employee name`})
 ```
 > 💡 Added 155 labels, created 155 nodes, set 155 properties, completed after 79 ms.
 
@@ -95,7 +95,7 @@ RETURN employee
 - Let's try to do the 3 steps in 1
 ```sh
 LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-boss.csv' AS row
-CREATE (employee:Employee {name: row.`employee name`})
+MERGE (employee:Employee {name: row.`employee name`})
 MERGE (boss:Employee {name: row.`has boss`})
 WITH employee, boss
 WHERE employee.name <> boss.name
@@ -158,7 +158,7 @@ DETACH DELETE n;
 ## IV. Querying
 ### 1. Show a hierarchy of all people working under "Darth Vader"
 ```sh
-MATCH (boss:Employee {name: "Darth Vader"})<-[:REPORTS_TO*]-(employee:Employee)
+MATCH (employee:Employee)-[:REPORTS_TO*]->(boss:Employee {name: "Darth Vader"})
 RETURN boss, employee
 ```
 
@@ -240,32 +240,11 @@ MERGE (e)-[:HAS_SKILL]->(s)
 ```sh
 MATCH p=()-[r:HAS_SKILL]->() RETURN p
 ```
-> 📢 Particularity: Thad which has no skills is not loaded
-- Loading of employees, then skills, then edges
-```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
-MERGE (:Employee {name: row.employee_name})
-```
-```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
-WITH row, split(row.skills, ",") AS skillList
-UNWIND skillList AS skill
-MERGE (:Skill {name: skill})
-```
-```sh
-LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/veben/neo4j_employees/main/resources/data/employees-and-their-skills.csv' AS row
-WITH row, split(row.skills, ",") AS skillList
-UNWIND skillList AS skill
-MATCH (e:Employee {name: row.employee_name})
-MATCH (s:Skill {name: skill})
-MERGE (e)-[:HAS_SKILL]->(s)
-```
-> 📢 Particularity: Thad which has no skills is loaded
 
 ### 2. Some more queries
 - I want to know everything about **Bradley**
 ```sh
-MATCH (brad:Employee {name: "Bradley"})-[:REPORTS_TO]->(boss)
+OPTIONAL MATCH (brad:Employee {name: "Bradley"})-[:REPORTS_TO]->(boss)
 OPTIONAL MATCH (brad)-[:FRIENDS_WITH]-(friend)
 OPTIONAL MATCH (brad)-[:HAS_SKILL]->(skill)
 RETURN brad.name AS Employee,
@@ -274,18 +253,15 @@ RETURN brad.name AS Employee,
        collect(DISTINCT skill.name) AS Skills
 ```
 
-- Employees who have the same boss and are friends
+- Retrieve employees which have more than 2 skills, order by number of skills and then by employee name
 ```sh
-MATCH (employee:Employee)-[:REPORTS_TO]->(boss:Employee)
-MATCH (employee)-[:FRIENDS_WITH]->(friend:Employee)
-MATCH (friend)-[:REPORTS_TO]->(boss)
-RETURN employee.name, friend.name, boss.name
+MATCH (employee)-[:HAS_SKILL]->(skill:Skill)
+WITH employee, COLLECT(DISTINCT skill.name) AS skillList
+WHERE size(skillList) > 2
+RETURN employee.name as employeeName, skillList
+ORDER BY size(skillList) DESC, employeeName
 ```
-- Same with only one `MATCH`
-```sh
-MATCH (employee:Employee)-[:REPORTS_TO]->(boss:Employee)<-[:REPORTS_TO]-(friend:Employee)<-[:FRIENDS_WITH]-(employee)
-RETURN employee.name, friend.name, boss.name
-```
+
 - Retrieve employees who have skills in common with their friends, and also have the same boss:
 ```sh
 MATCH (employee:Employee)-[:FRIENDS_WITH]->(friend:Employee)
@@ -337,7 +313,11 @@ go run insert_data.go
 
 <img src="resources/images/tableau_db_connection.png" alt="tableau_db_connection.png" style="width:500px;height:auto;">
 
-⌛ TODO: Create chart
+- Create a simple **text table** with employees and skills
+
+<img src="resources/images/text_table.png" alt="tableau_db_connection.png" style="width:500px;height:auto;">
+
+⌛ TODO: Create charts based on queries
 
 ## VIII. Cleaning
 - Go to `neo4j_employees` folder
