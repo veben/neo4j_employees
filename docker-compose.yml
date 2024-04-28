@@ -1,6 +1,6 @@
 services:
   neo4j: 
-    image: neo4j:latest
+    image: ${NEO4J_IMAGE:-neo4j:latest
     hostname: neo4j
     container_name: neo4j
     ports:
